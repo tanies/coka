@@ -15,7 +15,7 @@ module.exports = {
     externals:[{
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
     }],
-    
+
     //页面入口文件配置
     //entry: {mian : './src/app.js'},https://github.com/tancie/loka.git
     entry:[
