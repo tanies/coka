@@ -1,33 +1,25 @@
-/**
- * Created by yumengya on 2017/3/4
- * 开发环境配置的打包文件
- */
+
 var webpack = require('webpack');
-//var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
+
 var path = require('path');
 
 module.exports = {
+
+    entry: {
+        indexs : './src/app.js'
+    },
+
+    output: {
+        path: __dirname+'/build/',
+        filename: '[name].js'},
     //插件项
     plugins: [
-    //commonsPlugin,
     new webpack.NoErrorsPlugin()
   ],
     externals:[{
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
     }],
 
-    //页面入口文件配置
-    //entry: {mian : './src/app.js'},https://github.com/tancie/loka.git
-    entry:[
-        'webpack/hot/dev-server',
-        path.resolve(__dirname,'./src/app.js'),
-        ],
-    //入口文件输出配置
-    //output: {path: __dirname+'_build_', filename: '[name].js'}
-    output:{
-        path: path.resolve(__dirname,'./build'),
-        filename: 'bundle.js'
-    },
     module: {
         //加载器配置
         loaders: [
@@ -52,21 +44,20 @@ module.exports = {
     },
     //其它解决方案配置
     resolve: {
-        //查找module的话从这里开始查找
-        //root: 'E:/github/flux-example/app', //绝对路径
-        //自动扩展文件后缀名，意味着我们require模块可以省略不写后缀名
+
         extensions: ['', '.js', '.json', '.scss','.less','jsonp'],
-        //模块别名定义，方便后续直接引用别名，无须多写长长的地址
-        alias: {
-            AppStore : 'js/stores/AppStores.js',
-            ActionType : 'js/actions/ActionType.js',
-            AppAction : 'js/actions/AppAction.js'
-        }
+        root: [
+                path.resolve('./src')
+            ]
+
+
+
     },
     devServer:{
         inline:true,
         port:3000,
-        // host:'182.61.53.165'
+
+        stats:'minimal',
         disableHostCheck: true
     }
 };

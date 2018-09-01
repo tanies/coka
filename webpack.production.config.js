@@ -1,12 +1,17 @@
-/**
- * Created by yumengya on 2017/3/24
- * 生产环境配置的打包文件
- */
+
 var webpack = require('webpack');
 var path = require('path');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+    entry:{
+        app:path.resolve(__dirname,'./src/app.js'),
+        vendors:['d3','react']
+    },
+    output:{
+        path: path.resolve(__dirname,'./dist/'),
+        filename: '[name].js'
+    },
     plugins: [
         new webpack.optimize.UglifyJsPlugin({minimize:true}),
         new webpack.optimize.CommonsChunkPlugin('vendors','vendors.js'),
@@ -24,14 +29,7 @@ module.exports = {
     externals:[{
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
     }],
-    entry:{
-        app:path.resolve(__dirname,'./src/app.js'),
-        vendors:['d3','react']
-    },
-    output:{
-        path: path.resolve(__dirname,'./dist'),
-        filename: '[name].js'
-    },
+
     module: {
         //加载器配置
         loaders: [
@@ -50,10 +48,8 @@ module.exports = {
     },
     resolve: {
         extensions: ['', '.js', '.json', '.scss','.less','jsonp'],
-        alias: {
-            AppStore : 'js/stores/AppStores.js',
-            ActionType : 'js/actions/ActionType.js',
-            AppAction : 'js/actions/AppAction.js'
-        }
+        root: [
+            path.resolve('./src')
+        ]
     }
 };

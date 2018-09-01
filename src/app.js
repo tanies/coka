@@ -1,6 +1,8 @@
-import './app.less';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
+import 'antd/dist/antd.css';
+import Page from './pages'
 
 
-ReactDOM.render(<div> hellow </div>, document.getElementById('app'));
+ReactDOM.render(<Page/>, document.getElementById('app'));
