@@ -1,4 +1,4 @@
-## Author: mia yu [personal blog: http://www.jianshu.com/u/b344d2977570]
+## Author: tan
 ## Getting Started
 
 #How to run project:
