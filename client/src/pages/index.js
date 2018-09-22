@@ -19,7 +19,6 @@ export default class extends Component {
                 <Col span={4}>
                     <Silider/>
                 </Col>
-
                 <Col span={20}>
                     <Container >
                         <Page1/>

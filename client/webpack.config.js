@@ -10,7 +10,7 @@ module.exports = {
     },
 
     output: {
-        path: __dirname+'/build/',
+        path: __dirname+'/builds/',
         filename: '[name].js'},
     //插件项
     plugins: [
