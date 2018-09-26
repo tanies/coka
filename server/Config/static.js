@@ -4,5 +4,5 @@
 export default (ctx)=>{
     ctx.response.type = 'json';
 
-    ctx.response.body =JSON.stringify('sfhsdkjfhdfsgf'');
+    ctx.response.body =JSON.stringify('sfhsdkjfhdfsgf');
 }
