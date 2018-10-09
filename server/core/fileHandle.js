@@ -53,11 +53,11 @@ exports.static = (api, beforPath, app, router) => { //url开头字符串、静�
             return new Promise(function (reso, reje) {
 
                 fs.readFile(beforPath + path, function (err, data) {
-                    if (err){
+                    if (err) {
                         reso(JSON.stringify(err));
                         next()
                     }
-                    else{
+                    else {
                         reso(data);
                     }
                 })
@@ -66,9 +66,10 @@ exports.static = (api, beforPath, app, router) => { //url开头字符串、静�
             });
         }
         let data = await readFile();
-
+        console.log(data)
         ctx.response.type =
             ctx.response.body = data;
+        console.log(ctx.request.header, ctx.type)
 
 
 

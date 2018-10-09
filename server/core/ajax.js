@@ -1,23 +1,46 @@
 const fs = require("fs");
 var request = require('superagent');
 exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
-    
-    let ajax = (config,path,param)=>{
-        let url = config.basePath + config.config[path].uri;
-        let methodType = config.config[path].method || 'get'
-            return new Promise((ress) => {
-                request[methodType](url)
-                .query(param)
-                .then(function (res) {
-                    console.log(request)
-                    ress(res.body);
+
+    let ajax = (config, path, param) => {
+        let url = config.basePath + config.config[path].uri; //后台url
+        let api = config.config[path]; //映射的路径
+        let methodType = api.method || 'get'
+        let _request = {
+            url,
+            param,
+            method: methodType,
+            header: Object.assign({
+                'content-Type': 'application/x-www-form-urlencoded'
+            }, api.header || {})
+        }
+        config.request && (_request = config.request(_request))
+        return request[methodType](_request.url)
+            .query(_request.param)
+            .then(function (res) {
+
+                //如果自定义响应数据
+                if (config.response) {
+                    return config.response(res)
+                }
+
+                //默认返回数据,当successCode匹配成功或者默认不设置都直接给前端
+                if (res.body.status == config.successCode ||
+                    config.successCode === undefined) {
+                    return res.body;
+                } else {
+                    // 后端返回的数据异常时，新增与前端的标示code  
+                    return {
+                        code: -1,
+                        msg: JSON.stringify(res.body)
+                    }
+                }
 
 
-                });
-            }).then((data) => {
-                return data
-            })
-        
+
+            });
+
+
     }
 
     async function explorer(path, SET) {
@@ -53,7 +76,7 @@ exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
                                     //解析配置信息
                                     let config = Object.values(_file)[0]
                                     //
-                                    return ajax(config,path,param)
+                                    return ajax(config, path, param)
 
                                 }
 

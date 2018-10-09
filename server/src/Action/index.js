@@ -1,13 +1,17 @@
 /**
  * Created by admin on 2018/9/1.
  */
-exports.index =  async (ctx)=>{
-   
+exports.index = async (ctx) => {
 
-   let data = await API.index('path',{})
-   
+    /*
+    *   以下示例中：
+    *  mod名称前端可自定义，它的值与apis的config的key一致
+    *  API.index中的index与apis文件名称一致
+    */
+
+    let data = await API.index(ctx.query.mod, ctx.query)
     ctx.ajax(data)
-    
+
 
 
 }
