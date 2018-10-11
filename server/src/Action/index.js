@@ -8,9 +8,13 @@ exports.index = async (ctx) => {
     *  mod名称前端可自定义，它的值与apis的config的key一致
     *  API.index中的index与apis文件名称一致
     */
+    // return ctx.render('index')
 
-    let data = await API.index(ctx.query.mod, ctx.query)
-    ctx.ajax(data)
+
+   
+    ctx.ajax({test:1111})
+    // let data = await API.index(ctx.query.mod || 'index', ctx.query)
+    // ctx.ajax(data)
 
 
 

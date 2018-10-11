@@ -2,14 +2,35 @@ const Koa = require("koa");
 const fs = require("fs");
 const router = require('koa-router')();
 const views = require('koa-views');
+const session = require('koa-session');
 
 global.app = new Koa();
 //模板处理
 app.use(views(__dirname + '/src/views', {
     extension: 'ejs'
 }))
+app.keys = ['some secret hurr'];
+ 
+const CONFIG = {
+  key: 'koa:sess', /** (string) cookie key (default is koa:sess) */
+  /** (number || 'session') maxAge in ms (default is 1 days) */
+  /** 'session' will result in a cookie that expires when session/browser is closed */
+  /** Warning: If a session cookie is stolen, this cookie will never expire */
+  maxAge: 86400000,
+  autoCommit: true, /** (boolean) automatically commit headers (default true) */
+  overwrite: true, /** (boolean) can overwrite or not (default true) */
+  httpOnly: true, /** (boolean) httpOnly or not (default true) */
+  signed: true, /** (boolean) signed or not (default true) */
+  rolling: false, /** (boolean) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. (default is false) */
+  renew: false, /** (boolean) renew session when session is nearly expired, so we can always keep user logged in. (default is false)*/
+};
+ 
+app.use(session(CONFIG, app));
+
+
 let API_SET = {};
 global.API = {};
+
 
 
 
@@ -27,9 +48,19 @@ static('/public', __dirname + '/src/Static', app, router) //静态资源处理�
 
 
 
+//登陆模块 
+const { login } = require('./Config/login')
+app.use(async (ctx, next) => {
+    ctxMothed(ctx);
+    login(ctx) && next();
+
+})
 // 对于任何请求，app将调用该异步函数处理请求：
 app.use(async (ctx, next) => {
-    ctxMothed(ctx);  //加载自定义的ctx方法
+
+    ctx.cookies.set('loka_tokec', 'ucid=121212112')
+    ctx.cookies.set('loka_tokec1111', 'ucid=121212112')
+    //加载自定义的ctx方法
 
     let url = ctx.url.split('?')[0];//提取正式的url（一版解决api是get带参数）
     if (url == '/') {
