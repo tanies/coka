@@ -16,7 +16,7 @@ const CONFIG = {
   /** (number || 'session') maxAge in ms (default is 1 days) */
   /** 'session' will result in a cookie that expires when session/browser is closed */
   /** Warning: If a session cookie is stolen, this cookie will never expire */
-  maxAge: 86400000,
+  maxAge: 10000,
   autoCommit: true, /** (boolean) automatically commit headers (default true) */
   overwrite: true, /** (boolean) can overwrite or not (default true) */
   httpOnly: true, /** (boolean) httpOnly or not (default true) */
@@ -52,14 +52,13 @@ static('/public', __dirname + '/src/Static', app, router) //静态资源处理�
 const { login } = require('./Config/login')
 app.use(async (ctx, next) => {
     ctxMothed(ctx);
-    login(ctx) && next();
+    login(ctx) &&await next();
 
 })
 // 对于任何请求，app将调用该异步函数处理请求：
 app.use(async (ctx, next) => {
 
-    ctx.cookies.set('loka_tokec', 'ucid=121212112')
-    ctx.cookies.set('loka_tokec1111', 'ucid=121212112')
+    
     //加载自定义的ctx方法
 
     let url = ctx.url.split('?')[0];//提取正式的url（一版解决api是get带参数）
