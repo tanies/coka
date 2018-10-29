@@ -12,8 +12,9 @@ exports.index = async (ctx) => {
 
 
    
-    ctx.ajax({test:1111})
-    // let data = await API.index(ctx.query.mod || 'index', ctx.query)
+    // ctx.ajax({test:1111})
+    console.log(ctx.query)
+    let data = await API.index(ctx.query.mod || 'index', ctx.query)
     // ctx.ajax(data)
 
 
