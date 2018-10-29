@@ -3,12 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "build": "babel src --out-dir dist --copy-files",
-    "dev": "NODE_ENV=development nodemon ./src/index.js",
-    "test": "NODE_ENV=testing node ./dist/index.js",
-    "start": "supervisor index.js"
-  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
