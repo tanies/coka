@@ -3,7 +3,7 @@ var request = require('superagent');
 exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
 
     let ajax = (config, path, param) => {
-        console.log(config, path)
+
         let url = config.basePath + config.config[path].uri; //后台url
         let api = config.config[path]; //映射的路径
         let methodType = api.method || 'get'
@@ -15,11 +15,12 @@ exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
                 'content-Type': 'application/x-www-form-urlencoded'
             }, api.header || {})
         }
+
         config.request && (_request = config.request(_request))
         return request[methodType](_request.url)
             .query(_request.param)
             .then(function (res) {
-                
+
                 //如果自定义响应数据
                 if (config.response) {
                     return config.response(res)

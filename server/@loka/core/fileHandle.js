@@ -1,81 +1,146 @@
 const fs = require("fs");
 var request = require('superagent');
 //ajax api问价处理逻辑
-exports.action = (paths, API_SET) => {  //(action)  文件夹，挂载api的对象
 
-    async function explorer(path, SET) {
+exports.action = async (paths, API_SET) => {  //(action)  文件夹，挂载api的对象
 
-        return new Promise((res) => {
-            fs.readdir(path, function (err, files) {
-                //err 为错误 , files 文件名列表包含文件夹与文件
-                if (err) {
-                    console.error('error:\n' + err);
-                    return;
-                }
+    return new Promise((complete) => {
 
-                files.forEach(function (file) {
-                    fs.stat(path + '/' + file, function (err, stat) {
-                        if (err) { console.error(err); return; }
 
-                        if (stat.isDirectory()) {
+        function explorer(path, SET) {
 
-                            explorer(path + '/' + file);
-                        } else {
-                            if (/.js$/.test(file)) {
-                                let _file = require(path + '/' + file)
-                                file = (path + '/' + file).replace(/.js$/, '').replace(paths, '')
-                                API_SET[file] = Object.values(_file)[0]
+            return new Promise((res) => {
+                fs.readdir(path, function (err, files) {
+                    //err 为错误 , files 文件名列表包含文件夹与文件
+                    if (err) {
+                        console.error('error:\n' + err);
+                        return;
+                    }
+
+                    files.forEach(function (file, idx) {
+                        fs.stat(path + '/' + file, function (err, stat) {
+                            if (err) { console.error(err); return; }
+
+                            if (stat.isDirectory()) {
+
+                                explorer(path + '/' + file);
+                            } else {
+                                if (/.js$/.test(file)) {
+                                    let _file = require(path + '/' + file);//读取文件
+
+                                    file = (path + '/' + file).replace(/.js$/, '').replace(paths, '')
+                                    API_SET[file] = Object.values(_file)[0]
+                                    if (idx === files.length - 1) {
+                                        res()
+                                        complete();
+                                    }
+                                }
 
                             }
+                        });
 
-                        }
                     });
 
-                });
-                res()
 
-            });
-        })
-    }
-    explorer(paths, API_SET);
+                });
+            })
+        }
+        explorer(paths, API_SET);
+    })
 }
 
 
 //访问静态资源
-exports.static = (api, beforPath, app, router) => { //url开头字符串、静态资源位置、app、router
-    let PathReg = new RegExp("^" + api)
+exports.static = async (api, beforPath, app, router) => { //url开头字符串、静态资源位置、app、router
+    return new Promise((complete) => {
+        let PathReg = new RegExp("^" + api)
 
-    router.get(PathReg, async (ctx, next) => {
+        router.get(PathReg, async (ctx, next) => {
 
-        let path = ctx.url.replace(PathReg, '')
+            let path = ctx.url.replace(PathReg, '')
 
-        async function readFile() {
-            return new Promise(function (reso, reje) {
+            async function readFile() {
+                return new Promise(function (reso, reje) {
 
-                fs.readFile(beforPath + path, function (err, data) {
-                    if (err) {
-                        reso(JSON.stringify(err));
-                        next()
-                    }
-                    else {
-                        reso(data);
-                    }
-                })
-            }).then(function (data) {
-                return data
-            });
-        }
-        let data = await readFile();
-        console.log(data)
-        ctx.response.type =
-            ctx.response.body = data;
-        console.log(ctx.request.header, ctx.type)
-
+                    fs.readFile(beforPath + path, function (err, data) {
+                        if (err) {
+                            reso(JSON.stringify(err));
+                            next()
+                        }
+                        else {
+                            reso(data);
+                        }
+                    })
+                }).then(function (data) {
+                    return data
+                });
+            }
+            let data = await readFile();
+            ctx.response.type =
+                ctx.response.body = data;
 
 
+
+        })
+
+        app
+            .use(router.routes())
+            .use(router.allowedMethods());
+
+        complete()
     })
+}
 
-    app
-        .use(router.routes())
-        .use(router.allowedMethods());
+
+//合并配置项
+exports.configHandle = async (CONFIG) => {
+    return new Promise(async (complete) => {
+        function explorer(path) {
+
+            return new Promise((res) => {
+                fs.readdir(path, function (err, files) {
+                    //err 为错误 , files 文件名列表包含文件夹与文件
+                    if (err) {
+                        console.error('error:\n' + err);
+                        return;
+                    }
+
+                    files.forEach(function (file, idx) {
+                        fs.stat(path + '/' + file, function (err, stat) {
+
+                            if (err) { console.error(err); return; }
+
+                            if (/.js$/.test(file)) {
+                                let _file = require(path + '/' + file);//读取文件
+
+                                file = (path + '/' + file).replace(/.js$/, '').replace(path, '');
+                                let configKey = file.slice(1)
+                                CONFIG[configKey] = CONFIG[configKey] || {}
+                                CONFIG[configKey] = Object.assign(CONFIG[configKey], Object.values(_file)[0]());
+
+                                if (idx === files.length - 1) {
+                                    res(CONFIG)
+                                }
+
+                            }
+
+                        });
+
+                    });
+
+
+
+                });
+            })
+        }
+        let srcPath = __dirname.split('/');
+        let defaultConfigPath = srcPath.slice(0, srcPath.length - 1).join('/') + '/Config';
+        await explorer(defaultConfigPath);
+
+        let developerConfigPath = srcPath.slice(0, srcPath.length - 3).join('/') + '/src/Config'
+        await explorer(developerConfigPath);
+        console.log(CONFIG, '______')
+        complete();
+    }
+    )
 }

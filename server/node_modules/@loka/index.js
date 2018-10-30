@@ -11,7 +11,7 @@ app.use(views(__dirname + '/src/views', {
 }))
 app.keys = ['some secret hurr'];
 
-const CONFIG = {
+const SESSION_CONFIG = {
     key: 'koa:sess', /** (string) cookie key (default is koa:sess) */
     /** (number || 'session') maxAge in ms (default is 1 days) */
     /** 'session' will result in a cookie that expires when session/browser is closed */
@@ -25,11 +25,12 @@ const CONFIG = {
     renew: false, /** (boolean) renew session when session is nearly expired, so we can always keep user logged in. (default is false)*/
 };
 
-app.use(session(CONFIG, app));
+app.use(session(SESSION_CONFIG, app));
 
 
 let API_SET = {};
 global.API = {};
+global.CONFIG = {}  //配置项，exports.xx = ()=>{}  形式，导出为函数，执行后返回一个对象
 
 
 
@@ -38,17 +39,21 @@ global.API = {};
 const { ctxMothed } = require('./core/ctx');
 
 //导入逻辑处理
-const { action, static } = require('./core/fileHandle');
+const { action, static, configHandle } = require('./core/fileHandle');
 
 //与后端ajax请求逻辑
 const { api } = require('./core/ajax');
 
 let srcPath = __dirname.split('/');
 srcPath = srcPath.slice(0, srcPath.length - 2).join('/');
+
 action(srcPath + '/src/Action', API_SET)   //读取开发者的api文件信息，即ajax请求的文件名称
 action(__dirname + '/Action', API_SET)   //读取默认api文件信息，即ajax请求的文件名称
 api(srcPath + '/src/Apis', API)   //读取api文件信息，与后端数据交互的逻辑
 static('/public', srcPath + '/src/Static', app, router) //静态资源处理逻辑
+configHandle(CONFIG)  //读取Config文件夹下的配置文件配置信息
+.then(() => console.log('end'))
+
 
 
 
@@ -67,7 +72,7 @@ app.use(async (ctx, next) => {
     //加载自定义的ctx方法
 
     let url = ctx.url.split('?')[0];//提取正式的url（解决api是get带参数）
-   
+    console.log(API_SET)
     if (url == '/') {
         await API_SET['/index'](ctx)
         return;
