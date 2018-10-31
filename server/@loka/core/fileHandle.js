@@ -1,5 +1,6 @@
 const fs = require("fs");
-var request = require('superagent');
+const request = require('superagent');
+const { ctxMothed } = require('./ctx')
 //ajax api问价处理逻辑
 
 exports.action = async (paths, API_SET) => {  //(action)  文件夹，挂载api的对象
@@ -56,7 +57,7 @@ exports.static = async (api, beforPath, app, router) => { //url开头字符串�
         let PathReg = new RegExp("^" + api)
 
         router.get(PathReg, async (ctx, next) => {
-
+            ctxMothed(ctx)
             let path = ctx.url.replace(PathReg, '')
 
             async function readFile() {
@@ -64,11 +65,11 @@ exports.static = async (api, beforPath, app, router) => { //url开头字符串�
 
                     fs.readFile(beforPath + path, function (err, data) {
                         if (err) {
-                            reso(JSON.stringify(err));
+                            reso(JSON.stringify({ code: -1, data: '', msg: err }));
                             next()
                         }
                         else {
-                            reso(data);
+                            reso({ code: 1, data });
                         }
                     })
                 }).then(function (data) {
@@ -76,8 +77,7 @@ exports.static = async (api, beforPath, app, router) => { //url开头字符串�
                 });
             }
             let data = await readFile();
-            ctx.response.type =
-                ctx.response.body = data;
+            await ctx.renderStatic(data);
 
 
 
@@ -139,7 +139,7 @@ exports.configHandle = async (CONFIG) => {
 
         let developerConfigPath = srcPath.slice(0, srcPath.length - 3).join('/') + '/src/Config'
         await explorer(developerConfigPath);
-        console.log(CONFIG, '______')
+
         complete();
     }
     )

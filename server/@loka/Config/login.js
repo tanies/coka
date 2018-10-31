@@ -14,7 +14,7 @@ exports.login = (ctx) => {  //api 文件夹，挂载api的对象
     // }
 
     // ctx.redirect('http://test3-passport.lianjia.com/cas/login?service=http://beta.mp.lianjia.com:3200/login?gotoURL=%252F')
-    return false
+    return {}
 }
 
 

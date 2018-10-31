@@ -3,7 +3,9 @@ var request = require('superagent');
 exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
 
     let ajax = (config, path, param) => {
-
+        if (!config.config[path]) {
+            return { code: -1, data: { msg: '找不到对应的api名称' } }
+        }
         let url = config.basePath + config.config[path].uri; //后台url
         let api = config.config[path]; //映射的路径
         let methodType = api.method || 'get'
@@ -16,6 +18,7 @@ exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
             }, api.header || {})
         }
 
+        //根据配置重新计算request值
         config.request && (_request = config.request(_request))
         return request[methodType](_request.url)
             .query(_request.param)
@@ -29,12 +32,13 @@ exports.api = (paths, API_SET) => {  //api 文件夹，挂载api的对象
                 //默认返回数据,当successCode匹配成功或者默认不设置都直接给前端
                 if (res.body.status == config.successCode ||
                     config.successCode === undefined) {
-                    return res.body;
+                    return { code: 1, data: res.body };
                 } else {
                     // 后端返回的数据异常时，新增与前端的标示code  。
                     return {
                         code: -1,
-                        msg: JSON.stringify(res.body)
+                        msg: JSON.stringify(res.body),
+                        data:''
                     }
                 }
 
