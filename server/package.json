@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "koa": "^2.0.0-alpha.8"
   },
   "dependencies": {

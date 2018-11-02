@@ -10,10 +10,13 @@ const views = require('koa-views');
 const session = require('koa-session');
 
 global.app = new Koa();
+
 //模板处理
 app.use(views(srcPath + '/views', {
     extension: 'ejs'
 }))
+
+
 app.keys = ['some secret hurr'];
 
 const SESSION_CONFIG = {
@@ -58,8 +61,7 @@ action(srcPath + '/Action', API_SET)   //读取开发者的api文件信息，即
 action(__dirname + '/Action', API_SET)   //读取默认api文件信息，即ajax请求的文件名称
 api(srcPath + '/Apis', API)   //读取api文件信息，与后端数据交互的逻辑
 static('/public', srcPath + '/Static', app, router) //静态资源处理逻辑
-configHandle(CONFIG)  //读取Config文件夹下的配置文件配置信息
-    .then(() => console.log('end'))
+
 
 
 app.use(async (ctx, next) => {
@@ -89,40 +91,12 @@ app.use(async (ctx, next) => {
 })
 
 
+exports.index = async () => {
+    await configHandle(CONFIG) //读取Config文件夹下的配置文件配置信息
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 在端口3000监听:
-exports.index = () => app.listen(3200);
-console.log('app started at port 3200...');
+    app.listen(CONFIG.app.port)
+    console.log('\033[K \033[42;34m DONE \033[40;32m app run at 0.0.0.0:'+CONFIG.app.port+'  \033[0m');
+};

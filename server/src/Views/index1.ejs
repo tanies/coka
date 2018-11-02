@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试</title>
+    <style>
+        html,
+        body,
+        #app {
+            height: 100%;
+            width: 100%
+        }
+    </style>
+</head>
+
+<body>
+    <div id='app'></div>
+    <script src='/public/index.js'></script>
+    <script src="/public/echarts.min.js"></script>
+    <script>
+        var myChart = echarts.init(app)
+        var graph = grap;
+        console.log(grap)
+        var option = {
+            title: {
+
+            },
+            tooltip: {
+                show: false
+            },
+            focusNodeAdjacency: true,
+            animation: false,
+            series: [
+                {
+                    name: 'Les Miserables',
+                    type: 'graph',
+                    layout: 'force',
+                    data: graph.node.slice(0, 100),
+                    links: graph.link.slice(0, 100),
+                    edgeSymbol: ['circle', 'arrow'],
+                    edgeSymbolSize: [2, 2],
+                    // categories: categories,
+                    roam: true,
+                    label: {
+                        normal: {
+                            position: 'right',
+                            formData: (d) => console.log(d)
+                        }
+                    },
+                    force: {
+                        repulsion: 20,
+                        layoutAnimation: false
+                    }
+                }
+            ]
+        };
+
+        myChart.setOption(option);
+    </script>
+    <div id="app"></div>
+    <script src="http://127.0.0.1:3000/indexs.js"></script>
+</body>
+
+</html>
