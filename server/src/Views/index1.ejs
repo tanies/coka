@@ -18,10 +18,47 @@
 </head>
 
 <body>
+    <input id='sugNameVal' oninput="inputValue()" />
+    <button onclick="sugName()"> 搜索</button>
+    <ul id='list'>
+
+    </ul>
     <div id='app'></div>
     <script src='/public/index.js'></script>
     <script src="/public/echarts.min.js"></script>
+
     <script>
+
+        function sugName() {
+            let v = sugNameVal.value;
+            let data = datas.data;
+            let p = [];
+            let c = []
+            data.map((val)=>{
+                if(val.child_tables.indexOf(v)>-1){
+                    p.push(val.table)
+                }
+                if(val.parent_tables.indexOf(v)>-1){
+                    c.push(val.table)
+                }
+            })
+
+            
+            console.log(c,p,data)
+        }
+        function inputValue() {
+            let val = sugNameVal.value;
+            let li = ''
+            for (let key in allNode) {
+                if (new RegExp(val).test(key)) {
+                    li += '<li>' + key + '</li>'
+                }
+            }
+            list.innerHTML = li;
+        }
+    </script>
+    <script>
+
         var myChart = echarts.init(app)
         var graph = grap;
         console.log(grap)
@@ -59,7 +96,7 @@
             ]
         };
 
-        myChart.setOption(option);
+        // myChart.setOption(option);
     </script>
     <div id="app"></div>
     <script src="http://127.0.0.1:3000/indexs.js"></script>

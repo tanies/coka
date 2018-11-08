@@ -1,12 +1,14 @@
 /**
  * Created by admin on 2018/9/1.
  */
-exports.index = async ctx => {
+exports.index = {
 
-    /*
-    *   以下示例中：
-    *  mod名称前端可自定义，它的值与apis的config的key一致
-    *  API.index中的index与apis文件名称一致
-    */
-    return ctx.render('index1');
-};
+    needLogin: true,
+
+    requestHandler: async ctx => {
+
+
+        // render 回寻找view文件加下对应名称的ejs文件
+        return ctx.render('index1', { title: 'loka' });
+    }
+} 
