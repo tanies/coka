@@ -7,7 +7,7 @@
     "build": "babel src --out-dir dist --copy-files",
     "dev": "NODE_ENV=development nodemon ./src/index.js",
     "test": "NODE_ENV=testing node ./dist/index.js",
-    "start": "NODE_ENV=development supervisor ./src/index.js"
+    "start": "NODE_ENV=dev supervisor ./src/index.js"
   },
   "author": "",
   "license": "ISC",

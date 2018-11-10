@@ -3,7 +3,7 @@
  */
 exports.index = {
 
-    needLogin: true,
+    needLogin: false,
 
     requestHandler: async ctx => {
 
