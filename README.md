@@ -1,12 +1,12 @@
 # coka
 大前端实践
 
-说明：coka为自己生成的npm包（目前已经在npmjs上发布初步版本，但不决定实时更新），
-      也是本项目开发的重点部分，如第一次clone，需要剪切node_module里coka然后，待npm i 后再复制到node——modules
+#说明：coka为自己生成的npm包（目前已经在npmjs上发布初步版本，但不决定实时更新），
+#      也是本项目开发的重点部分，如第一次clone，需要剪切node_module里coka然后，待npm i 后再复制到node——modules
       
       
-server端：
-一、启动
+#server端：
+#一、启动
     npm run start   开发默认端口是3400   端口配置在src/Config/app.js
 
 二、请求
