@@ -18,10 +18,12 @@ exports.index = {
         */
 
         try {
+           
             //API[apis_file_name](*uri名称=string，*参数={}，替换模版={})
             let data = await API.index(ctx.query.mod, ctx.query,{uri:'?a=b',param:'&c=d'})
             return ctx.ajax(data)
         } catch (e) {
+           
             return ctx.ajax({ code: 0, data: { e }, msg: e })
         }
     }

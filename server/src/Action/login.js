@@ -7,15 +7,23 @@ exports.index = {
     needLogin: false,
     cors: false,//是否允许跨域访问  支持[域名1，域名形式]  注：功能还未增加
     requestHandler: async ctx => {
+
+        //
+        ctx.cookies.set(CONFIG.login.tokenName, '2.0069dd613afce9619e7874df886263a8cc')
+        return ctx.redirect('/')
+
+        return ctx.ajax({ code: 1, data: ctx.user })
         let { login } = CONFIG
-        console.log(ctx)
+
+        //
+
         if (ctx.query[login.backToken]) {
             ctx.cookies.set(login.tokenName, '2.0052efe3acc7dbe30843465d1edc2f6667')
 
             return ctx.ajax({ code: 1, data: ctx.user })
         } else {
             let url = login.ssoUrl + login.ssoLogin + '?' + login.backQueryName + '=' + 'http://beta.mp.lianjia.com:3200'
-            console.log(url)
+
             return ctx.redirect(url)
         }
 

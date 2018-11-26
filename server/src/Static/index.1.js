@@ -66727,7 +66727,80 @@ var datas = {
 
 
 let data = datas.data;
-let lishan = data.filter((val)=>{
-        return !val.child_tables&&!val.parent_tables
+let allNode = {};
+console.log(allNode)
+data.map((val, idx) => {
+    val.child_tables = val.child_tables || []
+    val.parent_tables = val.parent_tables || []
+    let node = [val.table, ...val.child_tables, ...val.parent_tables]
+    node.map((v, i) => {
+        !allNode[v] && (allNode[v] = idx + '+' + i)
+    })
 })
-console.log(lishan)
+
+window.grap = {
+    link: [],
+    node: []
+}
+for (let key in allNode) {
+    grap.node.push({
+        itemStyle: null,
+        symbolSize: 10,
+        value: 10,
+        category: 0,
+        id: allNode[key],
+        name: key,
+        // Use random x, y
+        x: null,
+        y: null,
+        draggable: true
+    })
+}
+data.map((val,idx)=>{
+    if(!val.child_tables
+        &&
+        !val.parent_tables){
+        grap.link.push(
+            link(idx,allNode[val.table],allNode[val.table])
+            )
+    }
+    if(val.child_tables){
+        val.child_tables.map((v,i)=>{
+            grap.link.push(
+                link(idx+'-'+i,allNode[val.table],allNode[v])
+            )
+        })
+    }
+    if(val.parent_tables){
+        val.parent_tables.map((v,i)=>{
+            grap.link.push(
+                link(idx+'+'+i,allNode[v],allNode[val.table])
+                
+
+            )
+        })
+    }
+    
+})
+
+function link(id,source,target){
+    return {
+        id,
+       
+        name: null,
+        symbolSize: [2, 8],
+    label: {
+        normal: {
+            // show: true
+        }
+    },
+    lineStyle: {
+        normal: {
+            width: 1,
+            curveness: 0.2
+        }
+    },
+        source,
+        target
+    }
+}

@@ -3,11 +3,11 @@
  */
 exports.index = {
 
-    needLogin: false,
+    needLogin: true,
 
     requestHandler: async ctx => {
 
-
+       
         // render 回寻找view文件加下对应名称的ejs文件
         return ctx.render('index1', { title: 'loka' });
     }
