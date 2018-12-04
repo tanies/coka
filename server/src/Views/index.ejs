@@ -4,21 +4,35 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/public/index.css">
+    <!-- <link rel="stylesheet" href="/public/kinship.css"> -->
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试</title>
     <style>
-        html,body,#app{
-            height:100%;
-            width:100%
+        html,
+        body,
+        #app {
+            height: 100%;
+            width: 100%
         }
     </style>
 </head>
+
 <body>
-<script>
-    const USER_INFO={}
+    <script>
+        const USER_INFO = {}
     </script>
-<div id="app"></div>
-<script src="http://127.0.0.1:3000/indexs.js"></script>
+    <div id="app">
+        <svg id="kinship-box">
+            <g/>
+        </svg>
+    </div>
+    <script src="https://cdn.bootcss.com/zepto/1.0rc1/zepto.min.js"></script>
+    <script src="http://s1.ljcdn.com/mystique/v1.0.1/js/mystique.min.js"></script>
+    <script src="/public/d3v3.js"></script>
+    <script src="/public/dagre-d3.min.js"></script>
+    <script src="/public/dagre.js"></script>
 </body>
+
 </html>
