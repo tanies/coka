@@ -7,13 +7,14 @@ exports.index = {
     needLogin: false,
     cors: false,//是否允许跨域访问  支持[域名1，域名形式]  注：功能还未增加
     requestHandler: async ctx => {
-
+        let { login } = Config;
+        let { query } = ctx.request
         //
-        ctx.cookies.set(CONFIG.login.tokenName, '2.0069dd613afce9619e7874df886263a8cc')
-        return ctx.redirect('/')
-
+        // ctx.cookies.set(CONFIG.login.tokenName, '2.0069dd613afce9619e7874df886263a8cc')
+        // return ctx.redirect('/')
+        // console.log(query)
         return ctx.ajax({ code: 1, data: ctx.user })
-        let { login } = CONFIG
+        //let { login } = CONFIG
 
         //
 

@@ -3,7 +3,7 @@
  */
 exports.index = {
 
-    needLogin: false,
+    needLogin: true,
     cors: false,//是否允许跨域访问  支持[域名1，域名形式]  注：功能还未增加
     requestHandler: async ctx => {
         // ctx 为 koa 的 context 上下文
