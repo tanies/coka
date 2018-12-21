@@ -14,6 +14,9 @@
   "devDependencies": {},
   "dependencies": {
     "coka": "^0.0.5",
-    "cross-env": "^5.2.0"
+    "cross-env": "^5.2.0",
+    "csv-box": "^1.0.8",
+    "csv2json": "^1.4.2",
+    "json2csv": "^4.3.2"
   }
 }
