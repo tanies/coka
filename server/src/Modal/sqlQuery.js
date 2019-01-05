@@ -1,9 +1,6 @@
 
 
 const mysql = require('mysql');
-
-
-
 exports.index = () => {
     return {
 

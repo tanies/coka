@@ -1,10 +1,36 @@
+
+global.canvas = require('canvas')
+const jsdoms = require("jsdom");
+// console.log(jsdom)
+const { JSDOM} = jsdoms;
+
+const { window } = new JSDOM(`<body>
+<canvas id="cc"></canvas>
+<script>document.body.appendChild(document.createElement("hr"));</script>
+</body>`);
+
+
+
+console.log(window.document.getElementById('cc').getContext('2d'))
+global.window = window
+global.document = window.document;
+let { HTMLCanvasElement } = window
+const $ = require('jQuery')(window);
+
+
+
+// window = {
+//     innerWidth: 1366,
+//     innerHeight: 768,
+// }
 const csv = require('csv2json');
-const window = {
-    innerWidth: 1366,
-    innerHeight: 768,
-}
-exports.index = async () => {
+const G6 = require('@antv/g6')
+//console.log(new HTMLCanvasElement)
+
+exports.index = async (createList) => {
+
     console.log(csv)
+    return;
 
 
 
@@ -715,36 +741,36 @@ exports.index = async () => {
     }
 
     // 获取CSV中的节点数据
-    let createList = async () => {
+    // let createList = async () => {
 
-        let getCSVData = async () => {
-            return new Promise((resolve, reject) => {
-                console.log(0)
-                csv('./data/table_array.csv', (results,err) => {
-                    console.log('++')
-                    resolve(results);
-                });
-            });
-        }
+    //     let getCSVData = async () => {
+    //         return new Promise((resolve, reject) => {
+    //             console.log(0)
+    //             csv('./data/table_array.csv', (results,err) => {
+    //                 console.log('++')
+    //                 resolve(results);
+    //             });
+    //         });
+    //     }
 
-        let list = {};
-        let results = await getCSVData();
-        console.log(results, '---')
-        results = results.map(element => {
-            let newElement = {}
-            for (let key in element) {
-                let newKey = key.replace(/\"/g, '')
-                newElement[newKey] = element[key]
-            }
-            newElement.parents = newElement.parents ? newElement.parents.split(",") : []
-            newElement.children = newElement.children ? newElement.children.split(",") : []
-            list[newElement.name] = newElement
-            return newElement
-        });
+    //     let list = {};
+    //     let results = await getCSVData();
+    //     console.log(results, '---')
+    //     results = results.map(element => {
+    //         let newElement = {}
+    //         for (let key in element) {
+    //             let newKey = key.replace(/\"/g, '')
+    //             newElement[newKey] = element[key]
+    //         }
+    //         newElement.parents = newElement.parents ? newElement.parents.split(",") : []
+    //         newElement.children = newElement.children ? newElement.children.split(",") : []
+    //         list[newElement.name] = newElement
+    //         return newElement
+    //     });
 
 
-        return { list, results };
-    }
+    //     return { list, results };
+    // }
 
     // 列表对象
     class TableList {
@@ -800,17 +826,17 @@ exports.index = async () => {
     //      * 初始化数据
     //     */
 
-    let tableData = await createList();
+    let tableData = createList//await createList();
     // console.log(tableData)
 
-    //     list = tableData.list
-    //     counts = tableData.results
+    list = tableData.list
+    counts = tableData.results
 
     //     /** 
     //      * 初始化图，列表，绑定筛选
     //     */
 
-    //     graph = createGraph();
+    graph = createGraph();
 
     //     let tableList = new TableList(counts, document.getElementById('table_list'));
 
