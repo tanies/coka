@@ -11,7 +11,8 @@
     <style>
         * {
             padding: 0;
-            margin: 0
+            margin: 0;
+            box-sizing: border-box;
         }
 
         html,
@@ -27,8 +28,9 @@
 
         .pop-box {
             position: fixed;
-            color: #5ecaea;
-            background: #999;
+            color: #fff;
+            background: rgba(0, 0, 0, .5);
+            border: 1px solid #ccc;
             border-radius: 4px;
             padding: 8px;
             display: none;
@@ -39,7 +41,7 @@
             height: 0;
             width: 0;
             border: 5px solid transparent;
-            border-top: 10px solid #ffffff55;
+            border-top: 10px solid #ffffff;
             border-bottom: none;
             position: absolute;
             bottom: -10px;
@@ -70,22 +72,33 @@
         .select-node {
             width: 214px;
             font-size: 22px;
-            position: absolute;
-            top: 20px;
-            left: 20px;
+            float: left;
+            flex: 1;
+            position: relative;
+        }
+
+        #tableName {
+            flex: 1;
+            color: #fff;
+            text-align: center;
+            font-size: 16px;
+            border:1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         .show-type {
             color: #fff;
-            position: absolute;
-            right: 20px;
-            top: 20px;
+            text-align: right;
+            flex: 1
         }
 
         .select-node>input {
             background: #ccc;
-            width: 206px;
-            height: 20px;
+            width: 214px;
+            height: 28px;
             border-radius: 4px;
             border: none;
             padding: 4px 8px;
@@ -109,16 +122,18 @@
         .select-node>ul {
             display: none;
             width: 100%;
-            background: #ccc;
+            background: #c7c7c7;
             margin-top: 4px;
             max-height: 250px;
             overflow-y: auto;
             font-size: 14px;
             padding: 4px;
+            position: absolute;
+            width: 214px;
         }
 
         .select-node>ul>li {
-            color: #108ee9;
+            color: rgba(0, 0, 0, .5);
             padding: 4px;
             border-bottom: 1px dashed #fff;
             cursor: pointer;
@@ -131,7 +146,6 @@
             align-items: center;
             height: 100%;
             width: 100%;
-
             background: rgba(255, 255, 255, .3);
             color: #fff;
             font-size: 64px;
@@ -152,24 +166,30 @@
     <div class="load" id="load">loading...</div>
     <div id="threeBox">
     </div>
-    <div class="select-node">
-        <input id="searchId" />
-        <!-- <button id="searchBtn">查询</button> -->
-        <ul id="searchList">
+    <div style="position: absolute;padding:20px;top:0;width: 100%;
+    line-height: 28px;display: flex;justify-content: center">
 
 
-        </ul>
-    </div>
-    <div class="show-type">
-        <form>
-            <label>
-                <input type="radio" name="showType" value="all" checked/> 所有表
-            </label>
-            <label>
-                <input type="radio" name="showType" value="direct" /> 直接上下游表
-            </label>
-        </form>
+        <div class="select-node">
+            <input id="searchId" />
+            <!-- <button id="searchBtn">查询</button> -->
+            <ul id="searchList">
 
+
+            </ul>
+        </div>
+        <h1 id="tableName">teste</h1>
+        <div class="show-type">
+            <form>
+                <label>
+                    <input type="radio" name="showType" value="all" checked/> 所有上下游表
+                </label>
+                <label>
+                    <input type="radio" name="showType" value="direct" /> 直接上下游表
+                </label>
+            </form>
+
+        </div>
     </div>
     <!-- <div id="hawkEye"> </div> -->
     <script>
@@ -199,9 +219,13 @@
             let li = ''
             datas.nodes.map((val) => {
                 if (reg.test(val.name)) {
-                    li += `<li data-id=${val.label}>
+                    let detail = lists[val.label]
+                    li += `<li data-id=${val.label} title=${detail.description}>
                             
-                            ${val.name}
+                            <span>${val.name}</span>
+                            <p style="color:#108ee9">上下游表：${detail.ups}/${detail.downs}</p>
+                            
+                
                            
                         </li>`
                 }
@@ -211,10 +235,16 @@
 
         }
         searchList.onclick = (e) => {
-            if (e.target.tagName === 'LI') {
-                let id = e.target.getAttribute('data-id');
+            if (e.target.tagName === 'LI' || e.target.parentNode.tagName === 'LI') {
+                let id = e.target.getAttribute('data-id') || e.target.parentNode.getAttribute('data-id');
                 load.style.display = "flex";
-                setTimeout(()=>getNodesData(id),5);
+                setTimeout(() => {
+                    if (showType === 'direct') {
+                        directNode = [id];
+                        return getDirectNode();
+                    }
+                    getNodesData(id)
+                }, 5);
                 searchList.style.display = "none";
             }
             // console.log(e)
@@ -222,6 +252,16 @@
         [...radio].map((val) => {
             val.onclick = function (e) {
                 showType = e.target.value;
+                if (showType === 'direct') {
+                    if (!directNode.length) {
+                        directNode.push(datas.main.label)
+                    }
+                    getDirectNode();
+
+
+                } else {
+                    getNodesData(directNode.pop())
+                }
                 rerender()
             }
         })
@@ -229,7 +269,8 @@
     </script>
 
     <script>
-        let g = new dagre.graphlib.Graph();
+        let datas = null, g = null;
+
         let getAncestorNodes = (list, id, direction) => {
             direction = direction || 'up';
 
@@ -372,14 +413,12 @@
         data.map((val) => {
             list[val.id] = val;
         })
-        // fs.writeFile('./list.js','const list = '+JSON.stringify(list),(err)=>{console.log(err)});
 
         let keys = Object.keys(list)
         let len = keys.length
         let initRelaData = (nodes, edges) => {
+            g = new dagre.graphlib.Graph();
 
-
-            // Set an object for the graph label
             g.setGraph({
                 rankdir: 'RL',
                 // nodesep: 50,
@@ -428,9 +467,15 @@
                 return edge.source === 'anti_dw_db_agent_risk_control_del_house_info_da' && edge.target === 'dw_housedel_housedel_all_info_da'
             }))
 
+            productionDatas(nodes, edges, id)
+            //console.log('_________________',datas.nodes )
+            return datas
+        }
+        getReladata()//keys[parseInt(Math.random() * len)])
+        function productionDatas(nodes, edges, mid) {
             initRelaData(nodes, edges);
 
-            let datas = {
+            datas = {
                 nodes: [],
                 edges: [],
                 edgesId: edges,
@@ -443,11 +488,13 @@
 
             g.nodes().forEach(function (v) {
                 let node = g.node(v);
-                if (node.label === id) {
+                if (node.label === mid) {
                     datas.center = {
                         centerX: 0 - node.x,
                         centerY: 0 - node.y
                     }
+                    centerX = 0 - node.x;
+                    centerY = 0 - node.y;
                     datas.main = node
                 }
                 datas.nodes.push(node);
@@ -455,11 +502,35 @@
             g.edges().forEach(function (e) {
                 datas.edges.push(Object.assign(g.edge(e), e));
             });
-            //console.log('_________________',datas.nodes )
-            return datas
-        }
-        let datas = getReladata()//keys[parseInt(Math.random() * len)])
 
+            //
+            tableName.innerHTML = datas.main.name
+            tableName.title = datas.main.name
+
+        }
+        function getDirectNode() {
+            let nodes = [], edges = [];
+            let main = null;
+            directNode.map((id) => {
+                main = lists[id];
+                let cNode = main.children//.concat(main.parents);
+                let pNode = main.parents;
+                cNode.map((cid) => {
+                    nodes.push(lists[cid]);
+                    edges.push({ target: cid, source: id })
+                })
+                pNode.map((pid) => {
+                    nodes.push(lists[pid]);
+                    edges.push({ source: pid, target: id })
+                })
+                nodes.push(main);
+
+            })
+            productionDatas(nodes, edges, directNode[directNode.length - 1])
+            rerender();
+
+
+        }
     </script>
 
 
@@ -469,6 +540,10 @@
         document.body.appendChild(popBox)
 
         let directNode = [];
+
+        //
+
+        var imageCanvas = document.createElement("canvas")
 
 
 
@@ -482,6 +557,7 @@
         var vertices = [];
         var mouse = new THREE.Vector2()
         var targetCenter = null;
+        let FONT = null;
 
         let { centerX, centerY } = datas.center;//datas.nodes[0].x/2
 
@@ -491,7 +567,7 @@
 
         initScene();
         // initHawk();
-        drawCenterBox();
+        // drawCenterBox();
         drawLine();
         drawNode();
 
@@ -508,6 +584,7 @@
         }
         function initScene() {
             renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
 
             threeBox.appendChild(renderer.domElement);
@@ -517,7 +594,7 @@
             threeBox.addEventListener('click', onDocumentClick, false);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
-            camera.position.set(0, 0, 2000);
+            camera.position.set(0, 0, 5000);
             camera.lookAt(0, 0, 0);
 
             camera1 = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
@@ -539,7 +616,7 @@
             controls.maxPolarAngle = Math.PI / 2;
 
             scene = new THREE.Scene();
-            var light = new THREE.DirectionalLight(0xffffff, 1.5, 100);
+            var light = new THREE.DirectionalLight(0xffffff, 10, 100);
             light.position.set(0, 0, 1000);
             scene.add(light);
 
@@ -549,61 +626,97 @@
         }
 
         function drawNode(adjacent) {
-            let isDirect = showType === 'direct';
+            // let isDirect = showType === 'direct';
 
-            color = '#0adc8b';
-            if (!directNode.length) {
-                directNode.push(datas.main.label)
-            }
 
-            var sprite = new THREE.Sprite( new THREE.SpriteMaterial( { color: 'red' } ) );
-			sprite.position.set( 0, 0, 10 );
-            sprite.scale.set( 20, 50, 10 );
-            
+            // if (isDirect && !directNode.length) {
+            //     directNode.push(datas.main.label)
+            // }
 
-            datas.nodes.map((val) => {
-                let direct = val.children.concat(val.parents)
-                if (isDirect) {
-                    if (!(direct.find((v) => directNode.indexOf(v) > -1) || directNode.indexOf(val.label) > -1)) {
-                        return
+            // var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ color: 'red' }));
+            // sprite.position.set(0, 0, 10);
+            // sprite.scale.set(20, 50, 10);
+            var loader = new THREE.FontLoader();
+            FONT ?
+                dataMapNode()
+                :
+                loader.load('./helvetiker_regular.typeface.json', function (font) {
+                    FONT = font;
+                    dataMapNode()
+                });
+
+            //绿色 #61f316
+            //黄色 #e8e756
+            //紫色 #8756d5
+            //红色 #d73143
+            function dataMapNode() {
+
+                datas.nodes.map((val) => {
+                    color = '#61f316';
+                    let direct = val.children.concat(val.parents)
+                    // if (isDirect) {
+                    //     if (!(direct.find((v) => directNode.indexOf(v) > -1) || directNode.indexOf(val.label) > -1)) {
+                    //         return
+                    //     }
+
+                    // }
+
+                    let geometry = new THREE.BoxGeometry(val.width, val.height, 0);
+
+                    geometry.name = val.label;//id
+                    geometry.cname = val.name; //中文
+
+                    //选中点的相邻颜色 红色
+                    if (adjacent && adjacent.indexOf(val.label) > -1) {
+                        color = '#d73143'
+                    };
+
+                    //选中点的颜色 紫色
+                    if (adjacent && adjacent[0] == val.label) {
+                        color = '#8756d5'
+
+                        camera.position.set(val.x + centerX, val.y + centerY, 4000);  //
+                        controls.target.set(val.x + centerX, val.y + centerY, 0);
+
+                    };
+
+
+                    //直接上下游的选中路径
+                    if (
+                        showType === 'direct'
+                        && directNode.indexOf(val.label) > -1
+                        && directNode[drawNode.length - 1] !== val.label) {
+                        color = '#d73143'
                     }
-                   
-                }
 
-                let geometry = new THREE.BoxGeometry(val.width, val.height, 0);
+                    //默认查询的id颜色
+                    if (val.label === datas.main.label) {
+                        color = '#e8e756'
+                    }
 
-                geometry.name = val.label;//id
-                geometry.cname = val.name; //中文
 
-                //选中点的相邻颜色
-                if (adjacent && adjacent.indexOf(val.label) > -1) {
-                    color = '#5b18ce'
-                };
+                    //
 
-                //选中点的颜色
-                if (adjacent && adjacent[0] == val.label) {
-                    color = 'red'
+                    // 手动绘制文字
+                    let texture = drawTextBorder(val, color);
 
-                    camera.position.set(val.x + centerX, val.y + centerY, 2000);  //
-                    controls.target.set(val.x + centerX, val.y + centerY, 0);
+                    var object = new THREE.Mesh(geometry, texture)//,new THREE.MeshBasicMaterial({ color:'rgba(255,255,255,0)' }))//, texture);
 
-                };
+                    object.position.x = val.x + centerX;
+                    object.position.y = val.y + centerY;
+                    object.position.z = 0;
 
-                //默认查询的id颜色
-                if (val.label === datas.main.label) {
-                    color = 'yellow'
-                }
-                let texture = drawText(val, color);
-                color = '#0adc8b'
-                var object = new THREE.Mesh(geometry, texture);
+                    scene.add(object);
 
-                object.position.x = val.x + centerX;
-                object.position.y = val.y + centerY;
-                object.position.z = 0;
+                    // end
 
-                scene.add(object);
 
-            })
+                    // drawText(val, color);
+
+
+
+                })
+            }
 
         }
 
@@ -614,16 +727,16 @@
 
                 //vertexColors: THREE.VertexColors,
                 //resolution:  // to be set by renderer, eventually
-                dashed: false
+                dashed: true
             });
             let isDirect = showType === 'direct'
             datas.edges.map((val) => {
-                if (isDirect) {
-                    if (!(directNode.indexOf(val.v) > -1 || directNode.indexOf(val.w) > -1)) {
-                        return
-                    }
-                    console.log('eeee')
-                }
+                // if (isDirect) {
+                //     if (!(directNode.indexOf(val.v) > -1 || directNode.indexOf(val.w) > -1)) {
+                //         return
+                //     }
+                //     console.log('eeee')
+                // }
 
                 let pos = val.points
                 var geometry = new THREE.Geometry();
@@ -670,14 +783,14 @@
 
         }
 
-        function drawCenterBox() {
-            var geometry = new THREE.BoxBufferGeometry(512 * 2, 512 * 2, 0);
-            targetCenter = new THREE.Mesh(geometry, drawText({ width: 256, height: 64, label: '' }, 'red'))//new THREE.MeshLambertMaterial({ color: 'red',wireframe:true }));
+        // function drawCenterBox() {
+        //     var geometry = new THREE.BoxBufferGeometry(512 * 2, 512 * 2, 0);
+        //     targetCenter = new THREE.Mesh(geometry, drawText({ width: 256, height: 64, label: '' }, 'red'))//new THREE.MeshLambertMaterial({ color: 'red',wireframe:true }));
 
-            scene.add(targetCenter);
-            console.log(targetCenter)
+        //     scene.add(targetCenter);
+        //     console.log(targetCenter)
 
-        }
+        // }
         function getPixelRatio(context) {
             var backingStore = context.backingStorePixelRatio ||
                 context.webkitBackingStorePixelRatio ||
@@ -688,10 +801,15 @@
             return (window.devicePixelRatio || 1) / backingStore;
         };
 
-        function drawText(val, color = '#0adc8b') {
+        function drawTextBorder(val, color = '#0adc8b') {
+            // if(window.nodeMaterialCanvas){
+            //     return window.nodeMaterialCanvas
+            // }
+            imageCanvas = imageCanvas.cloneNode(true);
+            let context = imageCanvas.getContext("2d");
+            // console.time('drawText')
             let text = val.label
-            var imageCanvas = document.createElement("canvas"),
-                context = imageCanvas.getContext("2d");
+
             var ratio = 1//getPixelRatio(context);
             imageCanvas.width = val.width * ratio;
             imageCanvas.height = val.height * ratio;
@@ -699,23 +817,49 @@
 
             context.fillStyle = color;
             context.textBaseline = "top";
-            context.font = "48px Times New Roman"
+            context.font = "48px serif"
             // context.strokeRect( 0, 0, 128, 128 );
             text.split('').map((t, i) => {
-                context.fillText(t, 5 + i * 24 * ratio, 5 * ratio)
+                context.fillText(t, 5 + i * 24, 5)
             })
 
-            context.strokeStyle = color;
+            // context.strokeStyle = color;
 
-            context.strokeRect(0, 0, val.width, val.height);
+            // context.strokeRect(0, 0, val.width, val.height);
 
-            var textureCanvas = new THREE.CanvasTexture(imageCanvas);
+            var textureCanvas = new THREE.CanvasTexture(imageCanvas).clone();
 
 
 
             var materialCanvas = new THREE.MeshBasicMaterial({ map: textureCanvas });
             //materialCanvas.scale.set(2,2,2)
-            return materialCanvas
+            // console.timeEnd('drawText')
+            return materialCanvas.clone();
+
+
+
+        }
+
+
+        function drawText(val, color) {
+            var xMid, text;
+            var matLite = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                //size:128,
+                // opacity: 1,
+                side: THREE.DoubleSide
+            });
+            var shapes = FONT.generateShapes(val.label, 32);
+
+            var geometry = new THREE.ShapeGeometry(shapes);
+            text = new THREE.Mesh(geometry, matLite);
+            // text.position.z = - 150;
+            text.position.set(val.x + centerX - val.width / 2, val.y + centerY - val.height / 4, 2)// = - 150;
+            // object.position.x = val.x + centerX;
+            // object.position.y = val.y + centerY;
+            // object.position.z = 0;
+            scene.add(text);
 
 
         }
@@ -732,7 +876,7 @@
 
             controls.update();
             // console.log(controls.target)
-            targetCenter.visible = false;
+            // targetCenter.visible = false;
             renderer.render(scene, camera);
 
             // targetCenter.visible = true;
@@ -748,6 +892,8 @@
             centerY = datas.center.centerY;
             drawLine();
             drawNode();
+            camera.position.set(0, 0, 4000);  //
+            controls.target.set(0, 0, 0);
 
             load.style.display = 'none';
             console.timeEnd('rerender')
@@ -836,7 +982,8 @@
                             directNode.splice(i, 1)
                             :
                             directNode.push(id)
-                        return rerender();
+                        return getDirectNode()
+                        // return rerender();
 
 
                     }
