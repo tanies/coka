@@ -50,7 +50,7 @@
 
         .pop-box>div {
             margin: 4px 0;
-            height: 24px;
+            min-height: 24px;
         }
 
         .pop-box span {
@@ -82,11 +82,12 @@
             color: #fff;
             text-align: center;
             font-size: 16px;
-            border:1px solid #ccc;
+            border: 1px solid #ccc;
             border-radius: 4px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            background: rgba(0, 0, 0, .5)
         }
 
         .show-type {
@@ -137,6 +138,7 @@
             padding: 4px;
             border-bottom: 1px dashed #fff;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .load {
@@ -159,6 +161,32 @@
             width: 500px;
             height: 250px;
         }
+
+        #clickPath {
+            color: #fff;
+            position: fixed;
+            width: 100%;
+            padding: 0 50px;
+            bottom: 20px;
+            background: rgba(0, 0, 0, .8)
+            /* display: flex; */
+        }
+
+        #clickPath>li {
+            max-width: 20%;
+            padding: 4px;
+            float: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+
+        }
+
+        #clickPath>li:nth-child(2n) {
+            color: #108ee9;
+            border: 1px solid;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -178,7 +206,7 @@
 
             </ul>
         </div>
-        <h1 id="tableName">teste</h1>
+        <h1 id="tableName"></h1>
         <div class="show-type">
             <form>
                 <label>
@@ -191,9 +219,33 @@
 
         </div>
     </div>
+    <ul id="clickPath">
+
+    </ul>
     <!-- <div id="hawkEye"> </div> -->
     <script>
         window.onload = () => { load.style.display = "none" }
+        function ajax(url, callback) {
+            var xhr = new XMLHttpRequest();
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        //实际操作
+                        console.time('rerender')
+                        let data = xhr.responseText
+                        data = JSON.parse(data);
+                        callback(data);
+
+
+
+                    }
+                }
+            }
+            //发送请求
+            xhr.open('get', 'http://beta.mp.lianjia.com:8889' + url, false);
+            xhr.send();
+        }
     </script>
     <script src="/public/list.js"></script>
     <script src="/public/dagre.min.js"></script>
@@ -208,6 +260,7 @@
         box.onmouseleave = () => {
             searchList.style.display = "none"
         }
+        ajax('/list', (data) => window.listData = data.data);
         searchId.onclick = searchId.oninput = () => {
             searchList.style.display = "block"
 
@@ -217,17 +270,25 @@
             // }
             let reg = new RegExp(id);
             let li = ''
-            datas.nodes.map((val) => {
-                if (reg.test(val.name)) {
-                    let detail = lists[val.label]
-                    li += `<li data-id=${val.label} title=${detail.description}>
+            let counter = 0
+            window.listData.map((v) => {
+                if (counter > 100) {
+                    return;
+                }
+                let val = list[v.id]
+
+                if (reg.test(val.cname) || reg.test(val.name)) {
+                    let detail = val
+                    li += `<li data-id=${val.id} title=${detail.description}>
                             
-                            <span>${val.name}</span>
+                            <p>${val.cname}</p>
+                            <p>${val.id}</p>
                             <p style="color:#108ee9">上下游表：${detail.ups}/${detail.downs}</p>
                             
                 
                            
                         </li>`
+                    counter++
                 }
             })
 
@@ -256,11 +317,13 @@
                     if (!directNode.length) {
                         directNode.push(datas.main.label)
                     }
+                    clickPath.style.display = "block"
                     getDirectNode();
 
 
                 } else {
                     getNodesData(directNode.pop())
+                    clickPath.style.display = "none"
                 }
                 rerender()
             }
@@ -269,7 +332,7 @@
     </script>
 
     <script>
-        let datas = null, g = null;
+        window.datas = null, g = null;
 
         let getAncestorNodes = (list, id, direction) => {
             direction = direction || 'up';
@@ -504,13 +567,13 @@
             });
 
             //
-            tableName.innerHTML = datas.main.name
-            tableName.title = datas.main.name
+
 
         }
         function getDirectNode() {
             let nodes = [], edges = [];
             let main = null;
+            let li = '<li>历史点击：</li>';
             directNode.map((id) => {
                 main = lists[id];
                 let cNode = main.children//.concat(main.parents);
@@ -525,7 +588,15 @@
                 })
                 nodes.push(main);
 
+                li += `
+                
+                <li title=${id}>${id}</li>
+                <li >-></li>
+                `
+
+
             })
+            clickPath.innerHTML = li;
             productionDatas(nodes, edges, directNode[directNode.length - 1])
             rerender();
 
@@ -539,11 +610,20 @@
         popBox.className = "pop-box"
         document.body.appendChild(popBox)
 
+        let popClickBox = document.createElement('div')
+        popClickBox.className = "pop-box"
+        document.body.appendChild(popClickBox)
+        let clickId = null;
+
         let directNode = [];
 
         //
 
         var imageCanvas = document.createElement("canvas")
+
+        console.time('word')
+        drawWord();
+        console.timeEnd('word')
 
 
 
@@ -616,9 +696,9 @@
             controls.maxPolarAngle = Math.PI / 2;
 
             scene = new THREE.Scene();
-            var light = new THREE.DirectionalLight(0xffffff, 10, 100);
-            light.position.set(0, 0, 1000);
-            scene.add(light);
+            // var light = new THREE.DirectionalLight(0xffffff, 40, 100);
+            // light.position.set(0, 0, 1000);
+            // scene.add(light);
 
             var geometry = new THREE.BoxBufferGeometry(20, 20, 0);
 
@@ -626,6 +706,8 @@
         }
 
         function drawNode(adjacent) {
+            tableName.innerHTML = datas.main.name
+            tableName.title = datas.main.name
             // let isDirect = showType === 'direct';
 
 
@@ -652,8 +734,8 @@
             function dataMapNode() {
 
                 datas.nodes.map((val) => {
-                    color = '#61f316';
-                    let direct = val.children.concat(val.parents)
+                    color = '#24f705';
+                    // let direct = val.children.concat(val.parents)
                     // if (isDirect) {
                     //     if (!(direct.find((v) => directNode.indexOf(v) > -1) || directNode.indexOf(val.label) > -1)) {
                     //         return
@@ -666,39 +748,36 @@
                     geometry.name = val.label;//id
                     geometry.cname = val.name; //中文
 
-                    //选中点的相邻颜色 红色
-                    if (adjacent && adjacent.indexOf(val.label) > -1) {
-                        color = '#d73143'
-                    };
+
 
                     //选中点的颜色 紫色
-                    if (adjacent && adjacent[0] == val.label) {
-                        color = '#8756d5'
-
-                        camera.position.set(val.x + centerX, val.y + centerY, 4000);  //
-                        controls.target.set(val.x + centerX, val.y + centerY, 0);
-
-                    };
+                    // if (adjacent&&adjacent.label === val.label) {
+                    //     color = '#8756d5';
+                    // };
 
 
                     //直接上下游的选中路径
-                    if (
-                        showType === 'direct'
-                        && directNode.indexOf(val.label) > -1
-                        && directNode[drawNode.length - 1] !== val.label) {
-                        color = '#d73143'
-                    }
+                    // if (
+                    //     showType === 'direct'
+                    //     && directNode.indexOf(val.label) > -1
+                    //     && directNode[drawNode.length - 1] !== val.label) {
+                    //     color = '#d73143'
+                    // }
 
                     //默认查询的id颜色
                     if (val.label === datas.main.label) {
-                        color = '#e8e756'
+                        color = 'red'
                     }
 
 
                     //
 
+
+                    // return addLabel(val.name,{x:val.x + centerX-val.width/2,y:val.y + centerY},color)
+
                     // 手动绘制文字
                     let texture = drawTextBorder(val, color);
+                    // texture.selected = !!adjacent;
 
                     var object = new THREE.Mesh(geometry, texture)//,new THREE.MeshBasicMaterial({ color:'rgba(255,255,255,0)' }))//, texture);
 
@@ -707,6 +786,22 @@
                     object.position.z = 0;
 
                     scene.add(object);
+
+                    /*val.label.split('').map((v, idx) => {
+
+                        let geometry = new THREE.BoxGeometry(24, 64, 0);
+                        geometry.name = val.label;//id
+                        geometry.cname = val.name; //中文
+
+                        var object = new THREE.Mesh(geometry, window.canvasTexture[v])//,new THREE.MeshBasicMaterial({ color:'rgba(255,255,255,0)' }))//, texture);
+
+                        object.position.x = 12 + startX + idx * 24;
+                        object.position.y = startY;
+                        object.position.z = 0;
+
+                        scene.add(object);
+                    })*/
+
 
                     // end
 
@@ -720,17 +815,33 @@
 
         }
 
-        function drawLine() {
-            var material = new THREE.LineBasicMaterial({
-                color: 0xffffff,
-                linewidth: 5, // in pixels
+        function drawLine(adjacent) {
 
-                //vertexColors: THREE.VertexColors,
-                //resolution:  // to be set by renderer, eventually
-                dashed: true
-            });
             let isDirect = showType === 'direct'
+            let color = null, x = null, y = null;
+            if (adjacent) {
+                x = adjacent.x;
+                y = adjacent.y;
+
+            }
             datas.edges.map((val) => {
+                color = '#666666';
+                //选中点的直接连接线颜色 红色
+                if (adjacent && (adjacent.label === val.w || adjacent.label === val.v)) {
+                    camera.position.set(x + centerX, y + centerY, 4000);  //
+                    controls.target.set(x + centerX, y + centerY, 0);
+
+                    color = '#d73143'
+                };
+                var material = new THREE.LineBasicMaterial({
+                    color,
+
+                    linewidth: 5, // in pixels
+
+                    //vertexColors: THREE.VertexColors,
+                    //resolution:  // to be set by renderer, eventually
+                    dashed: true
+                });
                 // if (isDirect) {
                 //     if (!(directNode.indexOf(val.v) > -1 || directNode.indexOf(val.w) > -1)) {
                 //         return
@@ -740,6 +851,7 @@
 
                 let pos = val.points
                 var geometry = new THREE.Geometry();
+                geometry.lineInfo = val;
                 pos.map((v) => {
                     geometry.vertices.push(new THREE.Vector3(v.x + centerX, v.y + centerY, 0));
                 })
@@ -768,7 +880,8 @@
                 var end = new THREE.Vector3(target.position.x, target.position.y, target.position.z)
                 var start = new THREE.Vector3(source.position.x, source.position.y, source.position.z);
                 var length = end.distanceTo(start);
-                var arrowHelper = new THREE.ArrowHelper(direction, start, length, 0xcccccc, 16, 16);
+                var arrowHelper = new THREE.ArrowHelper(direction, start, length, color, 16, 16);
+                arrowHelper.arrowInfo = val;
                 scene.add(arrowHelper)
 
 
@@ -810,14 +923,14 @@
             // console.time('drawText')
             let text = val.label
 
-            var ratio = 1//getPixelRatio(context);
+            var ratio = 4//getPixelRatio(context);
             imageCanvas.width = val.width * ratio;
             imageCanvas.height = val.height * ratio;
             context.scale(ratio, ratio);
 
             context.fillStyle = color;
             context.textBaseline = "top";
-            context.font = "48px serif"
+            context.font = "48px Monaco"
             // context.strokeRect( 0, 0, 128, 128 );
             text.split('').map((t, i) => {
                 context.fillText(t, 5 + i * 24, 5)
@@ -831,10 +944,48 @@
 
 
 
-            var materialCanvas = new THREE.MeshBasicMaterial({ map: textureCanvas });
+            var materialCanvas = new THREE.MeshBasicMaterial({ map: textureCanvas, color });
             //materialCanvas.scale.set(2,2,2)
             // console.timeEnd('drawText')
             return materialCanvas.clone();
+
+
+
+        }
+
+        function drawWord(val, color = '#0adc8b') {
+            let ratio = 1;
+            let word = 'abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            word.split('').map((v) => {
+
+
+                let imageCanvas = document.createElement('canvas')
+
+                imageCanvas.width = 24 * ratio;
+                imageCanvas.height = 64 * ratio;
+                let context = imageCanvas.getContext("2d");
+                context.scale(ratio, ratio);
+
+                context.fillStyle = color;
+                context.textBaseline = "top";
+                context.font = "48px serif"
+
+                context.fillText(v, 1, 5)//, 5 + i * 24, 5)
+
+                // context.strokeStyle = color;
+
+                // context.strokeRect(0, 0, val.width, val.height);
+
+                var textureCanvas = new THREE.CanvasTexture(imageCanvas);
+
+
+
+                var materialCanvas = new THREE.MeshBasicMaterial({ map: textureCanvas });
+                window.canvasTexture = window.canvasTexture || {};
+                window.canvasTexture[v] = materialCanvas;
+                //materialCanvas.scale.set(2,2,2)
+                // console.timeEnd('drawText')
+            })
 
 
 
@@ -861,6 +1012,25 @@
             // object.position.z = 0;
             scene.add(text);
 
+
+        }
+
+        function addLabel(name, location, color) {
+
+            var textGeo = new THREE.TextBufferGeometry(name, {
+
+                font: FONT,
+
+                size: 24,
+                height: 1,
+                // curveSegments: 1
+
+            });
+
+            var textMaterial = new THREE.MeshBasicMaterial({ color });
+            var textMesh = new THREE.Mesh(textGeo, textMaterial);
+            textMesh.position.set(location.x, location.y, 0);
+            scene.add(textMesh);
 
         }
         function animate() {
@@ -920,11 +1090,14 @@
                 INTERSECTED = intersects[0].object;
                 if (INTERSECTED.type === 'Mesh') {
                     let id = INTERSECTED.geometry.name
+                    if(clickId===id){
+                        return;
+                    }
                     let detail = lists[id];
                     if (!detail) {
                         return
                     }
-
+                   
                     let popHTML = `
                         <div>
                             <span>中文名：</span>
@@ -936,6 +1109,10 @@
                         <div><span>描述：</span><span>${detail.description}</span></div>
                         <div><span>上游节点：</span><span>${detail.ups}</span></div>
                         <div><span>下游节点：</span><span>${detail.downs}</span></div>
+                        <div style="text-align:right">
+                            <a style="color:#108ee9;font-size:12px">
+                            ${ showType === 'direct' ? '可点击加载该节点的直接上下游数据！' : 'a.可双击切换视图到该节点上！<br/>b.单击显示该节点上下游关系！'}
+                            </a></div>
                         `
                     popBox.innerHTML = popHTML;
                     popBox.style.display = "block";
@@ -951,53 +1128,93 @@
 
                 INTERSECTED = null;
                 popBox.style.display = "none";
+                
             }
 
 
 
         }
         function onDocumentClick(event) {
-            let isDirect = showType === 'direct';
+            if (window._timer) {
+                clearTimeout(windwo._timer);
+                return;
+            }
 
-            event.preventDefault();
+            window._timer = setTimeout(() => {
+                window._timer = null;
+                let isDirect = showType === 'direct';
 
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+                event.preventDefault();
 
-            raycaster.setFromCamera(mouse, camera);
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 
-            var intersects = raycaster.intersectObjects(scene.children);
+                raycaster.setFromCamera(mouse, camera);
 
-            if (intersects.length > 0) {
+                var intersects = raycaster.intersectObjects(scene.children);
 
-                INTERSECTED = intersects[0].object;
+                if (intersects.length > 0) {
 
-                if (INTERSECTED.type === 'Mesh') {
-                    let id = INTERSECTED.geometry.name
+                    INTERSECTED = intersects[0].object;
 
-                    //如果只展示上下游
-                    if (isDirect) {
-                        let i = directNode.indexOf(id)
-                        i > -1 ?
-                            directNode.splice(i, 1)
-                            :
-                            directNode.push(id)
-                        return getDirectNode()
-                        // return rerender();
+                    if (INTERSECTED.type === 'Mesh') {
+                        let id = INTERSECTED.geometry.name
+
+                        //如果只展示上下游
+                        if (isDirect) {
+                            let i = directNode.indexOf(id)
+                            i > -1 ?
+                                directNode.splice(i, 1)
+                                :
+                                directNode.push(id)
+                            return getDirectNode()
+                            // return rerender();
 
 
+                        }
+
+                        //如果在全部表中展示，则高亮
+                        selectNode(id)
+                        
+                        let detail = lists[id];
+                        if (!detail) {
+                            return
+                        }
+                        clickId = id;
+                        let popHTML = `
+                        <div>
+                            <span>中文名：</span>
+                            <span>${detail.cname}</span>
+                        </div>
+                        <div><span>表名：</span><span>${detail.name}</span></div>
+                        <div><span>创建人：</span><span>${detail.creator}</span></div>
+                       
+                        <div><span>描述：</span><span>${detail.description}</span></div>
+                        <div><span>上游节点：</span><span>${detail.ups}</span></div>
+                        <div><span>下游节点：</span><span>${detail.downs}</span></div>
+                        <div style="text-align:right">
+                            <a style="color:#108ee9;font-size:12px">
+                            ${ showType === 'direct' ? '可点击加载该节点的直接上下游数据！' : 'a.可双击切换视图到该节点上！<br/>b.单击显示该节点上下游关系！'}
+                            </a></div>
+                        `
+                        popClickBox .innerHTML = popHTML;
+                        // popClickBox.style.display = "block";
+                        let { clientWidth, clientHeight } = popClickBox;
+
+                        popClickBox.style.top = `${event.clientY - clientHeight - 30}px`;
+                        popClickBox.style.left = `${event.clientX - clientWidth / 2}px`
+
+                    } else {
+                        clickId = null;
+                        popClickBox.style.display = "none"
                     }
 
-                    //如果在全部表中展示，则高亮
-                    selectNode(id)
-
+                } else {
+                    clickId = null;
+                    INTERSECTED = null;
+                    popClickBox.style.display = "none";
                 }
-
-            } else {
-
-                INTERSECTED = null;
-                popBox.style.display = "none";
-            }
+            }, 50)
 
 
 
@@ -1034,33 +1251,26 @@
 
         function getNodesData(id) {
             load.style.display = 'flex';
-            datas = getReladata(id)
+            ajax('/rela?id=' + id, (data) => {
+                if (data.er) {
+                    let isGetData = confirm('读取该表数据失败，是否启用本地计算？注：数据较大时，本地计算较慢')
+                    isGetData && (datas = getReladata(id))
+                } else {
+                    window.datas = data.data
+                }
+            })
+            // datas = getReladata(id)
             controls.reset();
             rerender();
-            return
-
-            // var xhr = new XMLHttpRequest();
-
-            // xhr.onreadystatechange = function(){
-            //     if(xhr.readyState == 4){
-            //         if(xhr.status == 200){
-            //             //实际操作
-            //             console.time('rerender')
-            //             let data = xhr.responseText
-            //             datas = JSON.parse(data);
 
 
-            //         }
-            //     }
-            // }
-            // //发送请求
-            // xhr.open('get','/rela?id='+id,true);
-            // xhr.send();
+
         }
 
+
         function selectNode(id) {
-            let adjacent = [id];
-            adjacent = adjacent.concat(list[id].parents).concat(list[id].children)
+            let adjacent = null;
+            // adjacent = adjacent.concat(list[id].parents).concat(list[id].children)
             // datas.edgesId.map((val) => {
             //     if (val.source === id) {
             //         adjacent.push(val.target)
@@ -1069,7 +1279,85 @@
             //     }
 
             // })
-            drawNode(adjacent)
+
+            //选中节点的颜色
+
+            datas.nodes.map((val) => {
+                if (val.label === id) {
+                    adjacent = val;
+                }
+            })
+            let detail = list[id];
+            let pNodeAndCnode = detail.children.concat(detail.parents);
+            pNodeAndCnode.push(id);
+            scene.children.map((val) => {
+
+                //重置对应节点||高亮
+                if (val.type === 'Mesh' && val.material.selected) {
+                    let oldSelect = null;
+                    val.material.selected = false;
+                    datas.nodes.map((v) => {
+                        if (v.label === val.geometry.name) {
+                            oldSelect = v;
+                        }
+                    })
+                    val.material = drawTextBorder(oldSelect, '#61f316')
+                }
+                // if (val.type === 'Mesh' && val.geometry.name === id) {
+                if (val.type === 'Mesh' && pNodeAndCnode.indexOf(val.geometry.name) > -1) {
+
+                    val.material = drawTextBorder(adjacent, '#d73143');//
+                    val.material.selected = true;
+                }
+
+
+                //重置对应线||高亮
+                if (
+                    val.type === "Line" && val.selected) {
+                    val.selected = false;
+                    val.material.color = new THREE.Color(0x999999)
+
+                }
+                if (
+                    val.type === "Line"
+                    && (val.geometry.lineInfo.w === id || val.geometry.lineInfo.v === id)
+                ) {
+                    val.selected = true;
+                    val.material.color = new THREE.Color(0xd73143)
+
+                }
+
+                //重置对应箭头||高亮
+                if (
+                    val.arrowInfo && val.selected
+                ) {
+                    val.selected = false;
+                    val.children.forEach((v) => {
+                        v.material.color = new THREE.Color(0x999999)
+                    })
+
+
+                }
+
+                if (
+                    val.arrowInfo
+                    && (val.arrowInfo.w === id || val.arrowInfo.v === id)
+                ) {
+                    val.selected = true;
+                    val.children.forEach((v) => {
+                        v.material.color = new THREE.Color(0xd73143)
+                    })
+
+
+                }
+
+
+            })
+
+            //重绘相关线的颜色
+            // scene.children = [];
+            // drawNode(adjacent);
+            // drawLine(adjacent);
         }
 
 
