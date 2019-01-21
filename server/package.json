@@ -13,15 +13,6 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
-    "@antv/g6": "^2.2.3",
-    "canvas": "^2.2.0",
-    "coka": "^0.0.5",
-    "cross-env": "^5.2.0",
-    "csv-box": "^1.0.8",
-    "csv2json": "^1.4.2",
-    "jQuery": "^1.7.4",
-    "jsdom": "^13.1.0",
-    "json2csv": "^4.3.2",
-    "zepto": "^1.2.0"
+    "coka": "^0.0.6",
   }
 }
