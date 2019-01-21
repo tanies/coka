@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/public/index.css">
+    <!-- <link rel="stylesheet" href="/public/index.css"> -->
     <!-- <link rel="stylesheet" href="/public/kinship.css"> -->
 
     <title>WEBGL-数据血缘图</title>
@@ -124,7 +124,7 @@
             display: none;
             width: 100%;
             background: #c7c7c7;
-            margin-top: 4px;
+            margin-top: 1px;
             max-height: 250px;
             overflow-y: auto;
             font-size: 14px;
@@ -148,10 +148,16 @@
             align-items: center;
             height: 100%;
             width: 100%;
-            background: rgba(255, 255, 255, .3);
+            background: rgba(0, 0, 0, .8);
             color: #fff;
-            font-size: 64px;
+            font-size: 18px;
             z-index: 99;
+        }
+
+        .load>span {
+            padding: 4px 8px;
+            border: 1px solid #108ee9;
+            border-radius: 4px;
         }
 
         #hawkEye {
@@ -179,23 +185,29 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
+            color: #108ee9;
+            border: 1px solid;
+            margin: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
 
         }
 
-        #clickPath>li:nth-child(2n) {
-            color: #108ee9;
-            border: 1px solid;
-            border-radius: 4px;
+        #clickPath>li:first-child {
+            color: #fff;
+            border: none;
         }
     </style>
 </head>
 
 <body>
-    <div class="load" id="load">loading...</div>
+    <div class="load" id="load">
+        <span>loading...</span>
+    </div>
     <div id="threeBox">
     </div>
-    <div style="position: absolute;padding:20px;top:0;width: 100%;
-    line-height: 28px;display: flex;justify-content: center">
+    <div style="position: absolute;padding:20px 20px 0;top:0;width: 100%;
+    line-height: 28px;display: flex;justify-content: center;z-index: 999;background: rgba(0,0,0,.8)">
 
 
         <div class="select-node">
@@ -243,15 +255,15 @@
                 }
             }
             //发送请求
-            xhr.open('get', 'http://beta.mp.lianjia.com:8889' + url, false);
+            xhr.open('get', 'http://beta.mp.lianjia.com:8899' + url, false);
             xhr.send();
         }
     </script>
-    <script src="/public/list.js"></script>
-    <script src="/public/dagre.min.js"></script>
-    <script src="/public/three.min.js"></script>
-    <script src="/public/MapControls.js"></script>
-    <script src="/public/table_array.js"></script>
+    <script src="./list.js"></script>
+    <script src="./dagre.min.js"></script>
+    <script src="./three.min.js"></script>
+    <script src="./MapControls.js"></script>
+    <script src="./table_array.js"></script>
 
     <script>
         let showType = 'all';
@@ -302,7 +314,7 @@
                 setTimeout(() => {
                     if (showType === 'direct') {
                         directNode = [id];
-                        return getDirectNode();
+                        return getDirectNode(id);
                     }
                     getNodesData(id)
                 }, 5);
@@ -314,9 +326,7 @@
             val.onclick = function (e) {
                 showType = e.target.value;
                 if (showType === 'direct') {
-                    if (!directNode.length) {
-                        directNode.push(datas.main.label)
-                    }
+                    directNode = [datas.main.label]
                     clickPath.style.display = "block"
                     getDirectNode();
 
@@ -325,9 +335,22 @@
                     getNodesData(directNode.pop())
                     clickPath.style.display = "none"
                 }
-                rerender()
+               
             }
         })
+
+        clickPath.onclick = (e) => {
+            let tag = e.target
+            let id = tag.getAttribute('data-id');
+            if (tag.tagName === "LI" && id) {
+
+                let i = directNode.indexOf(id)
+                i > -1 && directNode.splice(i, 1)
+
+                directNode.push(id);
+                getDirectNode();
+            }
+        }
 
     </script>
 
@@ -518,6 +541,7 @@
         }
 
         let getReladata = (id = 'dw_housedel_housedel_all_info_branch_da') => {
+            load.style.display = 'flex'
             let ALLUP = getAncestorNodes(list, id, 'up')
 
             let ALLDOWN = getAncestorNodes(list, id, 'down')
@@ -534,7 +558,7 @@
             //console.log('_________________',datas.nodes )
             return datas
         }
-        getReladata()//keys[parseInt(Math.random() * len)])
+        // getReladata()//keys[parseInt(Math.random() * len)])
         function productionDatas(nodes, edges, mid) {
             initRelaData(nodes, edges);
 
@@ -573,8 +597,9 @@
         function getDirectNode() {
             let nodes = [], edges = [];
             let main = null;
-            let li = '<li>历史点击：</li>';
-            directNode.map((id) => {
+            let li = '';
+            // directNode.map((id) => {
+            let getIdNode = (id) => {
                 main = lists[id];
                 let cNode = main.children//.concat(main.parents);
                 let pNode = main.parents;
@@ -588,20 +613,26 @@
                 })
                 nodes.push(main);
 
-                li += `
-                
-                <li title=${id}>${id}</li>
-                <li >-></li>
-                `
 
 
-            })
+            }
+            // )
+            getIdNode(directNode[directNode.length - 1]);
+            for(let i=0;i<5;i++){
+                let id = directNode[i]
+                li = `
+                <li title=${id} data-id=${id}>${id}</li>
+                `+ li
+            }
+            
+            li = '<li>历史点击：</li>' + li;
             clickPath.innerHTML = li;
             productionDatas(nodes, edges, directNode[directNode.length - 1])
             rerender();
 
 
         }
+        ajax('/rela?id=dw_housedel_housedel_all_info_branch_da', (data) => { datas = data.data })
     </script>
 
 
@@ -670,8 +701,9 @@
             threeBox.appendChild(renderer.domElement);
 
             threeBox.addEventListener('mousemove', onDocumentMove, false);
-            threeBox.addEventListener('dblclick', onDocumentDbClick, false);
+            // threeBox.addEventListener('dblclick', onDocumentDbClick, false);
             threeBox.addEventListener('click', onDocumentClick, false);
+            threeBox.addEventListener('mousedown', () => popClickBox.style.display = "none", false);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000000);
             camera.position.set(0, 0, 5000);
@@ -766,7 +798,7 @@
 
                     //默认查询的id颜色
                     if (val.label === datas.main.label) {
-                        color = 'red'
+                        color = '#e8e756'
                     }
 
 
@@ -842,6 +874,18 @@
                     //resolution:  // to be set by renderer, eventually
                     dashed: true
                 });
+
+                // var material = new THREE.LineDashedMaterial({
+                //     color,
+                //     scale: 2,
+                //     dashSize: 4,
+                //     gapSize: 20,
+                //     linewidth: 5, // in pixels
+
+                //     //vertexColors: THREE.VertexColors,
+                //     //resolution:  // to be set by renderer, eventually
+                //     // dashed: true
+                // });
                 // if (isDirect) {
                 //     if (!(directNode.indexOf(val.v) > -1 || directNode.indexOf(val.w) > -1)) {
                 //         return
@@ -1066,6 +1110,7 @@
             controls.target.set(0, 0, 0);
 
             load.style.display = 'none';
+            popClickBox.style.display = 'none';
             console.timeEnd('rerender')
         }
 
@@ -1090,30 +1135,31 @@
                 INTERSECTED = intersects[0].object;
                 if (INTERSECTED.type === 'Mesh') {
                     let id = INTERSECTED.geometry.name
-                    if(clickId===id){
+                    if (clickId === id) {
                         return;
                     }
                     let detail = lists[id];
                     if (!detail) {
                         return
                     }
-                   
+
                     let popHTML = `
                         <div>
                             <span>中文名：</span>
                             <span>${detail.cname}</span>
                         </div>
                         <div><span>表名：</span><span>${detail.name}</span></div>
-                        <div><span>创建人：</span><span>${detail.creator}</span></div>
                        
-                        <div><span>描述：</span><span>${detail.description}</span></div>
-                        <div><span>上游节点：</span><span>${detail.ups}</span></div>
-                        <div><span>下游节点：</span><span>${detail.downs}</span></div>
-                        <div style="text-align:right">
-                            <a style="color:#108ee9;font-size:12px">
-                            ${ showType === 'direct' ? '可点击加载该节点的直接上下游数据！' : 'a.可双击切换视图到该节点上！<br/>b.单击显示该节点上下游关系！'}
-                            </a></div>
                         `
+                    //     <div><span>创建人：</span><span>${detail.creator}</span></div>
+
+                    //    <div><span>描述：</span><span>${detail.description}</span></div>
+                    //    <div><span>上游节点：</span><span>${detail.ups}</span></div>
+                    //    <div><span>下游节点：</span><span>${detail.downs}</span></div>
+                    //    <div style="text-align:right">
+                    //        <a style="color:#108ee9;font-size:12px">
+                    //        ${ showType === 'direct' ? '可点击加载该节点的直接上下游数据！' : 'a.可双击切换视图到该节点上！<br/>b.单击显示该节点上下游关系！'}
+                    //        </a></div>
                     popBox.innerHTML = popHTML;
                     popBox.style.display = "block";
                     let { clientWidth, clientHeight } = popBox;
@@ -1128,7 +1174,7 @@
 
                 INTERSECTED = null;
                 popBox.style.display = "none";
-                
+
             }
 
 
@@ -1136,7 +1182,7 @@
         }
         function onDocumentClick(event) {
             if (window._timer) {
-                clearTimeout(windwo._timer);
+                clearTimeout(window._timer);
                 return;
             }
 
@@ -1163,19 +1209,18 @@
                         //如果只展示上下游
                         if (isDirect) {
                             let i = directNode.indexOf(id)
-                            i > -1 ?
-                                directNode.splice(i, 1)
-                                :
-                                directNode.push(id)
-                            return getDirectNode()
+                            i > -1 && directNode.splice(i, 1)
+
+                            directNode.push(id)
+                            // return getDirectNode()
                             // return rerender();
 
 
                         }
-
+                        let getFn = isDirect ? `getDirectNode('${id}')` : `getNodesData('${id}')`
                         //如果在全部表中展示，则高亮
                         selectNode(id)
-                        
+
                         let detail = lists[id];
                         if (!detail) {
                             return
@@ -1193,12 +1238,16 @@
                         <div><span>上游节点：</span><span>${detail.ups}</span></div>
                         <div><span>下游节点：</span><span>${detail.downs}</span></div>
                         <div style="text-align:right">
-                            <a style="color:#108ee9;font-size:12px">
-                            ${ showType === 'direct' ? '可点击加载该节点的直接上下游数据！' : 'a.可双击切换视图到该节点上！<br/>b.单击显示该节点上下游关系！'}
-                            </a></div>
+                            <button 
+                            style="padding: 4px;border-radius: 4px;background: #108ee9;color: #fff;border: none;" 
+                            onclick=${getFn}>
+                            查看该视图
+                            </button>
+                        </div>
                         `
-                        popClickBox .innerHTML = popHTML;
-                        // popClickBox.style.display = "block";
+                        popClickBox.innerHTML = popHTML;
+                        popClickBox.style.display = "block";
+                        popBox.style.display = "none";
                         let { clientWidth, clientHeight } = popClickBox;
 
                         popClickBox.style.top = `${event.clientY - clientHeight - 30}px`;
@@ -1251,17 +1300,23 @@
 
         function getNodesData(id) {
             load.style.display = 'flex';
-            ajax('/rela?id=' + id, (data) => {
-                if (data.er) {
-                    let isGetData = confirm('读取该表数据失败，是否启用本地计算？注：数据较大时，本地计算较慢')
-                    isGetData && (datas = getReladata(id))
-                } else {
-                    window.datas = data.data
-                }
-            })
+            popClickBox.style.display = "none";
+            setTimeout(() => {
+                ajax('/rela?id=' + id, (data) => {
+                    if (data.er) {
+                        let isGetData = confirm('暂无数据，是否现在计算数据？\n\n注：数据较大时，需要等待较长时间')
+                        isGetData && (getReladata(id))
+                    } else {
+                        window.datas = data.data
+
+
+                    }
+                })
+                controls.reset();
+                rerender();
+            }, 50)
             // datas = getReladata(id)
-            controls.reset();
-            rerender();
+
 
 
 
@@ -1282,11 +1337,7 @@
 
             //选中节点的颜色
 
-            datas.nodes.map((val) => {
-                if (val.label === id) {
-                    adjacent = val;
-                }
-            })
+
             let detail = list[id];
             let pNodeAndCnode = detail.children.concat(detail.parents);
             pNodeAndCnode.push(id);
@@ -1304,52 +1355,57 @@
                     val.material = drawTextBorder(oldSelect, '#61f316')
                 }
                 // if (val.type === 'Mesh' && val.geometry.name === id) {
-                if (val.type === 'Mesh' && pNodeAndCnode.indexOf(val.geometry.name) > -1) {
-
+                if (val.type === 'Mesh' && val.geometry.name !== datas.main.label && pNodeAndCnode.indexOf(val.geometry.name) > -1) {
+                    let adjacent = null;
+                    datas.nodes.map((v) => {
+                        if (v.label === val.geometry.name) {
+                            adjacent = v;
+                        }
+                    })
                     val.material = drawTextBorder(adjacent, '#d73143');//
                     val.material.selected = true;
                 }
 
 
                 //重置对应线||高亮
-                if (
-                    val.type === "Line" && val.selected) {
-                    val.selected = false;
-                    val.material.color = new THREE.Color(0x999999)
-
-                }
-                if (
-                    val.type === "Line"
-                    && (val.geometry.lineInfo.w === id || val.geometry.lineInfo.v === id)
-                ) {
-                    val.selected = true;
-                    val.material.color = new THREE.Color(0xd73143)
-
-                }
-
-                //重置对应箭头||高亮
-                if (
-                    val.arrowInfo && val.selected
-                ) {
-                    val.selected = false;
-                    val.children.forEach((v) => {
-                        v.material.color = new THREE.Color(0x999999)
-                    })
-
-
-                }
-
-                if (
-                    val.arrowInfo
-                    && (val.arrowInfo.w === id || val.arrowInfo.v === id)
-                ) {
-                    val.selected = true;
-                    val.children.forEach((v) => {
-                        v.material.color = new THREE.Color(0xd73143)
-                    })
-
-
-                }
+                /* if (
+                     val.type === "Line" && val.selected) {
+                     val.selected = false;
+                     val.material.color = new THREE.Color(0x999999)
+ 
+                 }
+                 if (
+                     val.type === "Line"
+                     && (val.geometry.lineInfo.w === id || val.geometry.lineInfo.v === id)
+                 ) {
+                     val.selected = true;
+                     val.material.color = new THREE.Color(0xd73143)
+ 
+                 }
+ 
+                 //重置对应箭头||高亮
+                 if (
+                     val.arrowInfo && val.selected
+                 ) {
+                     val.selected = false;
+                     val.children.forEach((v) => {
+                         v.material.color = new THREE.Color(0x999999)
+                     })
+ 
+ 
+                 }
+ 
+                 if (
+                     val.arrowInfo
+                     && (val.arrowInfo.w === id || val.arrowInfo.v === id)
+                 ) {
+                     val.selected = true;
+                     val.children.forEach((v) => {
+                         v.material.color = new THREE.Color(0xd73143)
+                     })
+ 
+ 
+                 }*/
 
 
             })
