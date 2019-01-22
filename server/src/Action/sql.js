@@ -9,8 +9,6 @@ exports.index = {
         try {
 
             let data = await Modal.sqlQuery.sql(query);
-            console.log(data)
-            //todo
             ctx.ajax({ code: 1, data: data })
         } catch (e) {
             // ctx.ajax(e)

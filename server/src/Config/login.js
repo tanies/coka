@@ -1,5 +1,3 @@
-const fs = require("fs");
-var request = require('superagent');
 exports.index = () => {
     //一般sso登录与登出的url为get方式，可以根据实际情况拼接参数
     return {  //api 文件夹，挂载api的对象

@@ -4,15 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir dist --copy-files",
+    "build": "webpack",
     "dev": "cross-env NODE_ENV=development nodemon ./src/index.js",
     "test": "cross-env NODE_ENV=testing node ./dist/index.js",
-    "start": "NODE_ENV=dev supervisor ./src/index.js"
+    "start": "cross-env NODE_ENV=dev supervisor ./src/index.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
     "coka": "^0.0.6"
+    
   }
 }

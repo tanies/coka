@@ -37,16 +37,15 @@ const login = {  //api 文件夹，挂载api的对象
 
 exports.index = () => {
     return {
-        redirectLogin: async (ctx) => {
-            // let ssoLogin='';
-            let ssoLogin = '/login?' + 'service=http://beta.mp.lianjia.com:3400/login?goto=/&ticket=abcd'
-            ctx.redirect(ssoLogin)
-
-        },
+       
         check: async function (ctx, loginToken) {
+            let {login} = Config;
             let { cookies } = ctx;
             let token = loginToken || ctx.cookies.get(login.tokenName);
-            console.log(token)
+            if(!token){
+                ctx.redirectLogin(ctx);
+                return false;
+            }
             let config = {
                 uri: login.sessionUrl || login.ssoUrl,
                 method: login.sessionMethod,
@@ -59,12 +58,12 @@ exports.index = () => {
 
 
                 return new Promise((comlete) => {
-                    return setTimeout(() => {
-                        ctx.user = {};
+                    return setTimeout(() => {  //模拟登陆
+                        ctx.user = {uc_id:'test001'};
                         // !token && cookies.set(login.tokenName, '')
-                        !token && this.redirectLogin(ctx)
+                        !token && ctx.redirectLogin(ctx)
                         comlete();
-                    },1);
+                    },100);
 
 
                     request.post(config.uri)
@@ -73,8 +72,8 @@ exports.index = () => {
                         .end(function (err, res) {
 
                             if (err) {
-                                console.log(err, '--')
-                                //do something
+                                console.log(err, 'login faild')
+                                
                             } else {
                                 let loginStatus = res.data;
                                 if (loginStatus.state === 200) {
