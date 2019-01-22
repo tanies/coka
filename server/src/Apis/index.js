@@ -33,7 +33,7 @@ exports.production = {
 }
 
 
-// 默认是用以上信息，在开发模式或者测试模式一下信息和合并到proction里
+// 默认是用以上信息，在开发模式或者测试模式一下信息和合并到production里
 exports.dev = {
     // basePath: '',
 };
